@@ -1,0 +1,7 @@
+# Compact Stage III publication-demo OUTCAR excerpt
+# State: bare vacuum
+# Retains the final energy(sigma->0) and completion marker.
+
+  energy  without entropy= -239.24837110  energy(sigma->0) = -239.24837110
+
+General timing and accounting informations for this job:
