@@ -14,6 +14,19 @@ ENERGIES = {
     "OOH": (-253.19808593, -0.09620561, -253.46065347),
 }
 
+ADSORBATE_DIRECT = {
+    "O": [("O", "0.2097892301139601 0.6011765442433132 0.6674485600839389 T T T")],
+    "OH": [
+        ("H", "0.4410987612489555 0.5623504364669173 0.7176002514347014 T T T"),
+        ("O", "0.5018663099455523 0.4968893326614742 0.7074307895354619 T T T"),
+    ],
+    "OOH": [
+        ("H", "0.2313722641125734 0.0077383195947576 0.7278682532403308 T T T"),
+        ("O", "0.1066151074827625 0.9055466081189800 0.7238600699143641 T T T"),
+        ("O", "0.0119609404878787 0.0015637165636776 0.7096444218881525 T T T"),
+    ],
+}
+
 PT111 = (
     "environment,slab,eta_ORR_V,PDS,provenance\n"
     "vacuum,mp-126_111,0.8240,O*→OH*,Stage III OC25/eSEN Pt(111) manuscript benchmark\n"
@@ -45,6 +58,30 @@ def _vaspgibbs(correction: float, label: str) -> str:
     )
 
 
+def _write_structure(base_path: Path, destination: Path, state: str) -> None:
+    lines = base_path.read_text(encoding="utf-8").splitlines()
+    if state == "bare":
+        shutil.copy2(base_path, destination)
+        return
+    n_base = sum(int(x) for x in lines[6].split())
+    coord_start = 9
+    ni = lines[coord_start:coord_start + 36]
+    sb = lines[coord_start + 36:coord_start + n_base]
+    additions = ADSORBATE_DIRECT[state]
+    h = [coord for element, coord in additions if element == "H"]
+    o = [coord for element, coord in additions if element == "O"]
+    if h:
+        elements = "  H               Ni              O               Sb"
+        counts = f"     {len(h)}    36     {len(o)}    12"
+        coordinates = h + ni + o + sb
+    else:
+        elements = "  Ni              O               Sb"
+        counts = f"    36     {len(o)}    12"
+        coordinates = ni + o + sb
+    output = lines[:5] + [elements, counts, "Selective dynamics", "Direct"] + coordinates
+    destination.write_text("\n".join(output) + "\n", encoding="utf-8")
+
+
 def materialize_stageIII_demo(destination: Path, overwrite: bool = False) -> Path:
     """Create the fixed Molecules/bare/O/OH/OOH/Freq/Sol demonstration tree."""
     destination = Path(destination)
@@ -56,7 +93,7 @@ def materialize_stageIII_demo(destination: Path, overwrite: bool = False) -> Pat
     destination.mkdir(parents=True, exist_ok=True)
 
     repo_root = Path(__file__).resolve().parents[1]
-    structures = repo_root / "data" / "stageIII_structures"
+    base_structure = repo_root / "data" / "stageIII_structures" / "mp-10260_111_bare.CONTCAR"
 
     manifest = []
     for molecule in ("H2", "H2O"):
@@ -73,11 +110,11 @@ def materialize_stageIII_demo(destination: Path, overwrite: bool = False) -> Pat
         folder = destination / "mp-10260_111" / state
         (folder / "Freq").mkdir(parents=True, exist_ok=True)
         (folder / "Sol").mkdir(parents=True, exist_ok=True)
-        shutil.copy2(structures / f"mp-10260_111_{state}.CONTCAR", folder / "CONTCAR")
+        _write_structure(base_structure, folder / "CONTCAR", state)
         (folder / "OUTCAR").write_text(_outcar_excerpt(e_vac, state + " vacuum"), encoding="utf-8")
         (folder / "Freq" / "VaspGibbs.md").write_text(_vaspgibbs(correction, state), encoding="utf-8")
         (folder / "Sol" / "OUTCAR").write_text(_outcar_excerpt(e_sol, state + " solvent"), encoding="utf-8")
-        manifest.append({"state": state, "structure": f"data/stageIII_structures/mp-10260_111_{state}.CONTCAR"})
+        manifest.append({"state": state, "structure": "data/stageIII_structures/mp-10260_111_bare.CONTCAR", "adsorbate_coordinates": state if state != "bare" else "none"})
 
     settings = destination / "calculation_settings"
     settings.mkdir(parents=True, exist_ok=True)
@@ -87,7 +124,7 @@ def materialize_stageIII_demo(destination: Path, overwrite: bool = False) -> Pat
     (settings / "KPOINTS").write_text(KPOINTS, encoding="utf-8")
     (destination / "pt111_reference.csv").write_text(PT111, encoding="utf-8")
     with (destination / "source_manifest.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=["state", "structure"])
+        writer = csv.DictWriter(handle, fieldnames=["state", "structure", "adsorbate_coordinates"])
         writer.writeheader()
         writer.writerows(manifest)
     marker.write_text("ready\n", encoding="utf-8")
