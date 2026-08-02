@@ -1,0 +1,78 @@
+name: Stage III notebook reproducibility
+
+on:
+  pull_request:
+    paths:
+      - "notebooks/04_stageIII_vasp_gibbs_overpotential_pt_ranking.ipynb"
+      - "src/stageIII_orr_gibbs.py"
+      - "src/stageIII_demo_fixture.py"
+      - "data/stageIII_structures/**"
+      - "requirements-stageIII.txt"
+      - "tests/test_stageIII_demo.py"
+      - ".github/workflows/stageIII-notebook.yml"
+  push:
+    branches: [main]
+    paths:
+      - "notebooks/04_stageIII_vasp_gibbs_overpotential_pt_ranking.ipynb"
+      - "src/stageIII_orr_gibbs.py"
+      - "src/stageIII_demo_fixture.py"
+      - "data/stageIII_structures/**"
+      - "requirements-stageIII.txt"
+      - "tests/test_stageIII_demo.py"
+      - ".github/workflows/stageIII-notebook.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce-stageIII:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-stageIII.txt
+
+      - name: Install notebook dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements-stageIII.txt
+
+      - name: Run numerical and structure tests
+        run: python -m pytest -q tests/test_stageIII_demo.py
+
+      - name: Execute Stage III notebook
+        run: |
+          mkdir -p build/stageIII
+          python -m jupyter nbconvert \
+            --to notebook \
+            --execute notebooks/04_stageIII_vasp_gibbs_overpotential_pt_ranking.ipynb \
+            --output "${{ github.workspace }}/build/stageIII/04_stageIII_executed.ipynb" \
+            --ExecutePreprocessor.timeout=300
+
+      - name: Reproduce tables and figures with CLI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, "src")
+          from stageIII_demo_fixture import materialize_stageIII_demo
+          materialize_stageIII_demo(Path("build/stageIII/demo_data"))
+          PY
+          python src/stageIII_orr_gibbs.py \
+            --data-root build/stageIII/demo_data \
+            --output-dir build/stageIII/results \
+            --verify-demo
+
+      - name: Upload executed notebook and publication outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: stageIII-reproducibility-output
+          path: build/stageIII
+          retention-days: 14
