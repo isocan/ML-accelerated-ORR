@@ -18,6 +18,15 @@ figures are uploaded as workflow artifacts.
 
 ```bash
 python -m pip install -r requirements-stageIII.txt
+
+python - <<'PY'
+from pathlib import Path
+import sys
+sys.path.insert(0, "src")
+from stageIII_demo_fixture import materialize_stageIII_demo
+materialize_stageIII_demo(Path("data/stageIII_demo"))
+PY
+
 python src/stageIII_orr_gibbs.py \
   --data-root data/stageIII_demo \
   --output-dir outputs/stageIII_demo \
