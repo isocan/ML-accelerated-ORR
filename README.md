@@ -1,41 +1,106 @@
-# ML-accelerated ORR
+# ML-accelerated ORR catalyst discovery
 
-Reproducibility notebooks for the multi-fidelity discovery and validation of
-bimetallic oxygen-reduction-reaction catalysts.
+Reproducibility repository for a multi-fidelity workflow that combines machine-learning interatomic potentials, adsorption-site screening, density-functional theory, vibrational corrections, and implicit solvation for oxygen reduction reaction (ORR) catalyst discovery.
 
-## Workflow notebooks
+The repository accompanies an ACS Catalysis manuscript and is organized as a notebook-first scientific workflow. Each stage can be inspected independently in Google Colab or executed locally.
 
-1. [`01_stageI_eqv2_adsorbml_relaxation_article_repository.ipynb`](notebooks/01_stageI_eqv2_adsorbml_relaxation_article_repository.ipynb) — Stage I EqV2/OC20 adsorption-configuration screening.
-2. [`02_stageII_esen_oc25_adsorbml_relaxation_CHE.ipynb`](notebooks/02_stageII_esen_oc25_adsorbml_relaxation_CHE.ipynb) — Stage II eSEN/OC25 relaxation and CHE electronic adsorption energies.
-3. [`03_stageII_AQCat25_adsorbml_relaxation_CHE.ipynb`](notebooks/03_stageII_AQCat25_adsorbml_relaxation_CHE.ipynb) — Stage II AQCat25 relaxation and CHE electronic adsorption energies.
-4. [`04_stageIII_vasp_gibbs_overpotential_pt_ranking.ipynb`](notebooks/04_stageIII_vasp_gibbs_overpotential_pt_ranking.ipynb) — Stage III VASP/VaspGibbs/VASPsol free energies, PDS, ORR overpotentials, and Pt(111) ranking.
+## Workflow overview
 
-The Stage III notebook includes a compact `mp-10260_111` demonstration and is
-continuously re-executed by GitHub Actions. Generated tables and publication
-figures are uploaded as workflow artifacts.
-
-## Stage III local execution
-
-```bash
-python -m pip install -r requirements-stageIII.txt
-
-python - <<'PY'
-from pathlib import Path
-import sys
-sys.path.insert(0, "src")
-from stageIII_demo_fixture import materialize_stageIII_demo
-materialize_stageIII_demo(Path("data/stageIII_demo"))
-PY
-
-python src/stageIII_orr_gibbs.py \
-  --data-root data/stageIII_demo \
-  --output-dir outputs/stageIII_demo \
-  --verify-demo
-
-python -m jupyter nbconvert \
-  --to notebook --execute \
-  notebooks/04_stageIII_vasp_gibbs_overpotential_pt_ranking.ipynb \
-  --output /tmp/04_stageIII_executed.ipynb
+```text
+Bulk candidate database
+        │
+        ▼
+Stage I: EqV2/OC20 adsorption-configuration screening
+        │
+        ▼
+Stage II: eSEN/OC25 and AQCat25 adsorption-energy screening
+        │
+        ▼
+Stage III: VASP + VaspGibbs + VASPsol thermodynamics
+        │
+        ▼
+ORR limiting potential, PDS, overpotential, and Pt(111) comparison
 ```
 
-Licensed VASP `POTCAR` files are not distributed.
+## Main notebooks
+
+| Stage | Notebook | Purpose |
+|---|---|---|
+| I | [`01_stageI_eqv2_adsorbml_relaxation_article_repository.ipynb`](notebooks/01_stageI_eqv2_adsorbml_relaxation_article_repository.ipynb) | EqV2/OC20 relaxation of O*, OH*, and OOH* configurations, trajectory validation, adsorption-site analysis, and minimum-energy selection. |
+| II | [`02_stageII_esen_oc25_adsorbml_relaxation_CHE.ipynb`](notebooks/02_stageII_esen_oc25_adsorbml_relaxation_CHE.ipynb) | eSEN/OC25 adsorption relaxation and computational-hydrogen-electrode electronic adsorption energies. |
+| II | [`03_stageII_AQCat25_adsorbml_relaxation_CHE.ipynb`](notebooks/03_stageII_AQCat25_adsorbml_relaxation_CHE.ipynb) | AQCat25 adsorption relaxation and computational-hydrogen-electrode electronic adsorption energies. |
+| III | [`04_stageIII_real_VASP_ORR.ipynb`](notebooks/04_stageIII_real_VASP_ORR.ipynb) | Reads real VASP outputs, applies VaspGibbs and VASPsol corrections, visualizes adsorbate intermediates, and calculates ORR limiting potentials, PDS values, overpotentials, and Pt(111) comparisons. |
+
+## Supporting notebooks
+
+- [`00_build_candidate_database_colab_fixed.ipynb`](00_build_candidate_database_colab_fixed.ipynb) — construction and filtering of the candidate bulk-material database.
+- [`ORR_EqV2_All_Trajectory_Screening_and_Site_Analysis.ipynb`](ORR_EqV2_All_Trajectory_Screening_and_Site_Analysis.ipynb) — full EqV2 trajectory-screening and adsorption-site analysis workflow.
+
+## Stage III demonstration data
+
+The real VASP demonstration data are stored in:
+
+```text
+data/stageIII_vasp_demo/
+├── Molecules/
+│   ├── H2/
+│   └── H2O/
+├── mp-12608_111/
+└── mp-126_111/
+```
+
+The Stage III notebook uses:
+
+- the last `energy(sigma->0)` value from each required `OUTCAR`;
+- the corresponding `G - E_dft` correction from `Freq_vac/VaspGibbs.md`;
+- final structures from `CONTCAR` for ASE and py3Dmol visualization;
+- `Sol/OUTCAR` values for solvent-aware surface states;
+- vacuum H2 and H2O values as the molecular CHE references in both environments.
+
+`mp-12608_111` is the worked candidate and `mp-126_111` is the directly calculated Pt(111) reference.
+
+## Running the notebooks
+
+### Google Colab
+
+Open a notebook on GitHub and select **Open in Colab**, or use the Colab badge included at the top of supported notebooks. The notebook clones this public repository and reads the committed demonstration data directly; access to the author's Google Drive is not required.
+
+### Local execution
+
+```bash
+git clone https://github.com/isocan/ML-accelerated-ORR.git
+cd ML-accelerated-ORR
+
+python -m pip install -r requirements-stageIII.txt
+jupyter notebook
+```
+
+Then open the notebook corresponding to the desired workflow stage.
+
+## Repository structure
+
+```text
+ML-accelerated-ORR/
+├── 00_build_candidate_database_colab_fixed.ipynb
+├── ORR_EqV2_All_Trajectory_Screening_and_Site_Analysis.ipynb
+├── notebooks/
+│   ├── 01_stageI_eqv2_adsorbml_relaxation_article_repository.ipynb
+│   ├── 02_stageII_esen_oc25_adsorbml_relaxation_CHE.ipynb
+│   ├── 03_stageII_AQCat25_adsorbml_relaxation_CHE.ipynb
+│   └── 04_stageIII_real_VASP_ORR.ipynb
+├── data/
+│   └── stageIII_vasp_demo/
+├── requirements-stageIII.txt
+└── README.md
+```
+
+## Data and licensing notes
+
+- Licensed VASP `POTCAR` files are not distributed.
+- Large restart files such as `WAVECAR` and `CHGCAR` are not required for the published post-processing workflow.
+- The committed Stage III data are a representative reproducibility example; the full production calculation archive is outside the scope of this GitHub repository.
+- Users must ensure that their use of VASP and any associated pseudopotential data complies with the relevant license terms.
+
+## Citation
+
+Citation information will be updated after publication of the associated ACS Catalysis article.
