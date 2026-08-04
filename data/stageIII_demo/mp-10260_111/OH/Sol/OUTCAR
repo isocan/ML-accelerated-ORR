@@ -1,7 +1,0 @@
-# Compact Stage III publication-demo OUTCAR excerpt
-# State: OH solvent
-# Retains the final energy(sigma->0) and completion marker.
-
-  energy  without entropy= -249.41919036  energy(sigma->0) = -249.41919036
-
-General timing and accounting informations for this job:

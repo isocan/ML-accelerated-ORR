@@ -1,7 +1,0 @@
-# Compact Stage III publication-demo OUTCAR excerpt
-# State: H2O solvent
-# Retains the final energy(sigma->0) and completion marker.
-
-  energy  without entropy= -14.48114009  energy(sigma->0) = -14.48114009
-
-General timing and accounting informations for this job:
