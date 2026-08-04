@@ -1,7 +1,0 @@
-# Compact Stage III publication-demo OUTCAR excerpt
-# State: H2 vacuum
-# Retains the final energy(sigma->0) and completion marker.
-
-  energy  without entropy= -6.97845601  energy(sigma->0) = -6.97845601
-
-General timing and accounting informations for this job:
