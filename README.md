@@ -2,7 +2,7 @@
 
 Reproducibility repository for a multi-fidelity workflow that combines machine-learning interatomic potentials, adsorption-site screening, density-functional theory, vibrational corrections, and implicit solvation for oxygen reduction reaction (ORR) catalyst discovery.
 
-The repository accompanies an ACS Catalysis manuscript and is organized as a notebook-first scientific workflow. Each stage can be inspected independently in Google Colab or executed locally.
+The repository accompanies a manuscript and is organized as a notebook-first scientific workflow. Each stage can be inspected independently in Google Colab or executed locally.
 
 ## Workflow overview
 
@@ -97,10 +97,7 @@ ML-accelerated-ORR/
 ## Data and licensing notes
 
 - Licensed VASP `POTCAR` files are not distributed.
-- Large restart files such as `WAVECAR` and `CHGCAR` are not required for the published post-processing workflow.
-- The committed Stage III data are a representative reproducibility example; the full production calculation archive is outside the scope of this GitHub repository.
-- Users must ensure that their use of VASP and any associated pseudopotential data complies with the relevant license terms.
-
+- The committed Stage III data are a representative reproducibility example.
 ## Citation
 
-Citation information will be updated after publication of the associated ACS Catalysis article.
+Citation information will be updated after publication of the associated article.
