@@ -1,6 +1,10 @@
 # Stage I screening tables (OC20/EquiformerV2)
 
-Produced by `notebooks/01_EqV2_Trajectory_Screening.ipynb` from
+The six tables are stored together in `orr_eqv2_stageI_tables.zip` to stay within
+GitHub file-size limits. Extract them here with `unzip orr_eqv2_stageI_tables.zip`.
+Running the screening notebook writes the same files to this folder.
+
+Produced by `notebooks/02_stageI_eqv2_trajectory_screening.ipynb` from
 `ORR_EqV2_Relaxation_Trajectories.zip` (Zenodo). Energies in eV, distances in Å,
 forces in eV/Å. To open the trajectory of any row, join `trajectory_relative_path`
 to the folder that contains the extracted system folders.

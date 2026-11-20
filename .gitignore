@@ -1,0 +1,9 @@
+# Regenerated notebook outputs
+figures/
+data/stageI_eqv2/trajectories/
+data/stageI_eqv2/processed/*.csv
+
+# System and editor files
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
